@@ -9,7 +9,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
+/** This page is the main page which contains the "outer shell" frame that switches between the other 3 classes(Jpanels).*/
 public class MainGraphPage extends Page{
 
     /////////////////// used to make the panel/////////////////////////
@@ -23,51 +23,52 @@ public class MainGraphPage extends Page{
 
     public MainGraphPage(){
         super(new JPanel(new CardLayout()));
-    }
 
-    public void addComponentToPane(Container pane) {
-        frame.setAlwaysOnTop(true);
+        //Create and set up the frame.
+        frame.setResizable(false);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
         JPanel main = new JPanel();
 
-
-        ///////////////add to the main.main the 4 important button////////////
+        ///////////////add to the main.main the 4 page buttons////////////
         main.add(loadGraph);
         main.add(saveGraph);
         main.add(editGraph);
         main.add(algorithms);
 
-        ///////////add button to each one of important linked button//////////////
-
         //Create the panel that contains the "cards".
         //JPanel cards = super.panel;
         panel.add(main, MAINPANEL);
 
+        //instantiate the other three page classes
         new AlgorithmsGraphPage();
         new LoadGraphPage();
-        new SaveGraphPage();
         new EditGraphPage();
 
+        //set the loadGraph button to change the panel to the LoadGraphPage panel
         loadGraph.addActionListener(e -> cl.show(cards, LOADGRAPHPANEL));
 
+        //set the saveGraph button to prompt user to input name for saved json file, and then save it in case the name is valid.
         saveGraph.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-            String name;
+                String name;
 
-            name = JOptionPane.showInputDialog(panel, "Insert File Name,or Path", null);
+                name = JOptionPane.showInputDialog(panel, "Insert File Name,or Path", null);
 
-            if (name!=null && (name.matches("(.*).json"))) {
-                boolean b =algorithm.save(name);
-                if(b)
-                    JOptionPane.showMessageDialog(panel, "Graph Saved Successfully!");
-                else
-                    JOptionPane.showMessageDialog(panel, "ERROR: Graph wasn't saved.");
-            } else {
-                if(name!=null)
-                    JOptionPane.showMessageDialog(panel, "Invalid input!");
-            }
-        }});
+                if (name!=null && (name.matches("(.*).json"))) {
+                    boolean b =algorithm.save(name);
+                    if(b)
+                        JOptionPane.showMessageDialog(panel, "Graph Saved Successfully!");
+                    else
+                        JOptionPane.showMessageDialog(panel, "ERROR: Graph wasn't saved.");
+                } else {
+                    if(name!=null)
+                        JOptionPane.showMessageDialog(panel, "Invalid input!");
+                }
+            }});
 
+        //set the editGraph button to change the panel to the EditGraphPage panel
         editGraph.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -75,6 +76,7 @@ public class MainGraphPage extends Page{
             }
         });
 
+        //set the algorithmGraph button to change the panel to the AlgorithmGraphPage panel
         algorithms.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -82,41 +84,12 @@ public class MainGraphPage extends Page{
             }
         });
 
-        pane.add(cards, BorderLayout.CENTER);
-    }
-
-    public void createAndShowGUI() {
-        //Create and set up the window.
-        frame.setResizable(false);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // choose x will close the program
-
-        addComponentToPane(frame.getContentPane()); //Create and set up the content pane.
+        frame.getContentPane().add(cards, BorderLayout.CENTER);
 
         //Display the window.
         frame.pack();
         frame.setVisible(true);
-    }
 
-//    public static void main.main(String[] args) {
-//
-//        Graph graph2 = new Graph();
-//        Node n0 = new Node(0,new Point3D(10,10,0),0,"N1",0);
-//        Node n1 = new Node(1,new Point3D(5,3,0),0,"N2",0);
-//        Node n2 = new Node(2,new Point3D(7,7,0),0,"N3",0);
-//        graph2.addNode(n0);
-//        graph2.addNode(n1);
-//        graph2.addNode(n2);
-//        graph2.connect(0,1,0);
-//        //graph2.connect(1,2,0);
-//        graph2.connect(2,0,0);
-//        graph2.connect(1,2,0);
-//
-//
-//
-//        MainGraphPage mainGraphPage = new MainGraphPage();
-//        mainGraphPage.createAndShowGUI();
-//        mainGraphPage.changeGraph(graph2);
-//        //mainGraphPage.algorithm.getGraph().removeNode(0);
-//    }
+    }
 }
 

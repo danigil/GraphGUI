@@ -46,7 +46,7 @@ public class Ex2 {
     public static void runGUI(String json_file) {
         DirectedWeightedGraphAlgorithms alg = getGrapgAlgo(json_file);
         MainGraphPage mainGraphPage = new MainGraphPage();
-        mainGraphPage.createAndShowGUI();
+        //mainGraphPage.createAndShowGUI();
         mainGraphPage.changeGraph((Graph) alg.getGraph());
     }
 }

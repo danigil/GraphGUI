@@ -10,21 +10,18 @@ public class Graph implements api.DirectedWeightedGraph {
 
     private Hashtable<Integer, Node> Nodes;
     private Point3D leftCorner,rightCorner;
-    private Queue<Integer> removedKeys;
     int edgeSize=0;
 
     public Graph(Hashtable<Integer, Node> nodes) {
         this.Nodes = nodes;
         leftCorner=new Point3D(Double.MAX_VALUE,Double.MAX_VALUE,0);
         rightCorner=new Point3D(Double.MIN_VALUE,Double.MIN_VALUE,0);
-        removedKeys=new LinkedList<>();
     }
 
     public Graph(){
         this.Nodes=new Hashtable<>();
         leftCorner=new Point3D(Double.MAX_VALUE,Double.MAX_VALUE,0);
         rightCorner=new Point3D(Double.MIN_VALUE,Double.MIN_VALUE,0);
-        removedKeys=new LinkedList<>();
     }
 
     @Override
@@ -69,12 +66,11 @@ public class Graph implements api.DirectedWeightedGraph {
     @Override
     public Iterator<NodeData> nodeIter() {
         Iterator<NodeData> iterator = new Iterator() {
-            Queue<NodeData> notHiddens=createQ();
             Enumeration<Integer> e = Nodes.keys();
             Node removed=null;
             @Override
             public boolean hasNext() {
-                return !notHiddens.isEmpty() || removed!=null;
+                return e.hasMoreElements() || removed!=null;
             }
 
             @Override
@@ -85,7 +81,7 @@ public class Graph implements api.DirectedWeightedGraph {
                     return tmp;
                 }
                 else
-                    return notHiddens.poll();
+                    return Nodes.get(e.nextElement());
             }
 
             @Override
@@ -97,19 +93,6 @@ public class Graph implements api.DirectedWeightedGraph {
             public void forEachRemaining(Consumer action) {
 
             }
-
-            public Queue<NodeData> createQ(){
-                Queue<NodeData> ret = new LinkedList<>();
-                Enumeration<Node> enumeration = Nodes.elements();
-                while (enumeration.hasMoreElements()){
-                    Node current = enumeration.nextElement();
-                    if(current.getTag()!=Node.HIDDEN)
-                        ret.add(current);
-                }
-
-                return ret;
-            }
-
         };
 
         return iterator;
@@ -215,22 +198,9 @@ public class Graph implements api.DirectedWeightedGraph {
                 removeEdge(current.getSrc(),current.getDest());
             }
         }
-//        edgeIterator = edgeIter();
-//        while (edgeIterator.hasNext()){
-//            Edge current = (Edge)edgeIterator.next();
-//            if(current.getSrc()==key+1){
-//                current.setSrc(key);
-//            }
-//
-//            if(current.getDest()==key+1){
-//                current.setDest(key);
-//            }
-//        }
 
         Node remove=Nodes.remove(key);
-        //Nodes.put(key,new Node(key,null,-1,null,Node.HIDDEN));
         shift(key);
-        //removedKeys.add(key);
 
         return remove;
     }
@@ -275,10 +245,6 @@ public class Graph implements api.DirectedWeightedGraph {
         return rightCorner;
     }
 
-    public Queue getRemovedKeys(){
-        return removedKeys;
-    }
-
 
     public static Graph generateRandomGraph(int nodeSIze){
         Graph graph = new Graph();
@@ -298,10 +264,8 @@ public class Graph implements api.DirectedWeightedGraph {
                     double weightEdge=10 * rand.nextDouble();
                     Edge addNew = new Edge(i,j,weightEdge,"",0);
                     node.getEdges().put(j,addNew);
-                    //graph.connect(i,j,weightEdge);
                 }
             }
-            //graph.getNodes().put(i,node);
             graph.addNode(node);
         }
 
@@ -328,10 +292,6 @@ public class Graph implements api.DirectedWeightedGraph {
         return ret;
     }
 
-    public int getSizeNoHiddens(){
-        return Nodes.size()-removedKeys.size();
-    }
-
     private void shift(int pos){
         if(pos==nodeSize())
             return;
@@ -339,10 +299,10 @@ public class Graph implements api.DirectedWeightedGraph {
         while (edgeIterator.hasNext()){
             Edge current = (Edge)edgeIterator.next();
 
-            if(current.getSrc()>=pos+1)
+            if(current.getSrc()>=pos)
                 current.setSrc(current.getSrc()-1);
 
-            if(current.getDest()>=pos+1)
+            if(current.getDest()>=pos)
                 current.setDest(current.getDest()-1);
         }
 

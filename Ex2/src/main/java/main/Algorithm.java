@@ -15,9 +15,9 @@ public class Algorithm implements api.DirectedWeightedGraphAlgorithms {
     Graph graph;
 
     public Algorithm() {
-        if(graph==null){
-            init(new Graph());
-        }
+//        if(graph==null){
+//            init(new Graph());
+//        }
     }
 
     public Algorithm(Graph graph) {
@@ -51,7 +51,11 @@ public class Algorithm implements api.DirectedWeightedGraphAlgorithms {
 
     @Override
     public boolean isConnected() {
-        if(graph.getSizeNoHiddens()==1)
+        /**
+         * Main idea: run dfs on original graph,if some node was unvisited,return false, run dfs on transpose graph,
+         * if some node was unvisited,return false, else return true;
+         */
+        if(graph.nodeSize()==1)
             return true;
 
         Iterator<NodeData> iterator = graph.nodeIter();
@@ -68,11 +72,9 @@ public class Algorithm implements api.DirectedWeightedGraphAlgorithms {
         iterator = graph.nodeIter();
         while (iterator.hasNext()){
             NodeData current = iterator.next();
-            System.out.println("current: "+current.getKey());
             if(current.getTag()==Node.UNVISITED){
                 return false;
             }
-
         }
 
         Graph transpose = Graph.graphTranspose(graph);
@@ -88,7 +90,6 @@ public class Algorithm implements api.DirectedWeightedGraphAlgorithms {
         while (iterator.hasNext()){
             NodeData current = iterator.next();
             if(current.getTag()==Node.UNVISITED){
-                System.out.println("currentTRANS: "+current.getKey());
                 return false;
             }
         }
@@ -98,17 +99,24 @@ public class Algorithm implements api.DirectedWeightedGraphAlgorithms {
 
     @Override
     public double shortestPathDist(int src, int dest) {
+        /**
+         * calculated with dijkstra algorithm
+         */
         dijkstra(src,dest);
         return ((Node)graph.getNode(dest)).getDist();
     }
 
     @Override
     public List<NodeData> shortestPath(int src, int dest) {
+        /**
+         * calculated with dijkstra algorithm
+         */
         return dijkstra(src,dest);
     }
 
     @Override
     public NodeData center() {
+        //floyd-warshall - and then search for the node with minimum eccentricity(or one of them at least)
         if (graph.nodeSize()<1)
             return null;
 
@@ -133,8 +141,6 @@ public class Algorithm implements api.DirectedWeightedGraphAlgorithms {
 
         int minIndex=graph.nodeIter().next().getKey();
         for (int i = 0; i < eccentricity.length ; i++) {
-            if(graph.getNode(i).getTag()==Node.HIDDEN)
-                continue;
             if(eccentricity[i]<eccentricity[minIndex])
                 minIndex=i;
         }
@@ -144,8 +150,14 @@ public class Algorithm implements api.DirectedWeightedGraphAlgorithms {
 
     @Override
     public List<NodeData> tsp(List<NodeData> cities) {
-
-        return null;
+        List<NodeData> linkedList= new LinkedList<>();
+        for (int i = 0; i < cities.size()-1; i++) {
+            List<NodeData> current = shortestPath(cities.get(i).getKey(), cities.get(i+1).getKey());
+            if (current.get(0).getKey()==cities.get(i).getKey())
+                current.remove(0);
+            linkedList.addAll(current);
+        }
+        return linkedList;
     }
 
     @Override
@@ -171,12 +183,8 @@ public class Algorithm implements api.DirectedWeightedGraphAlgorithms {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
         String json=gson.toJson(gsonIn);
-        //System.out.println(json);
         try {
             FileWriter fileWriter = new FileWriter(file);
-            //JsonWriter jsonWriter = new JsonWriter(fileWriter);
-            //jsonWriter.setIndent();
-            //jsonWriter.jsonValue(json);
             fileWriter.write(json);
             fileWriter.flush();
             fileWriter.close();
@@ -231,6 +239,9 @@ public class Algorithm implements api.DirectedWeightedGraphAlgorithms {
         return true;
     }
 
+    /**
+     * These three classes are for use of json parsing with gson
+     */
     private class gsonInput {
         simpleEdge[] Edges;
         simpleNode[] Nodes;
@@ -274,7 +285,7 @@ public class Algorithm implements api.DirectedWeightedGraphAlgorithms {
         }
     }
 
-    public List<NodeData> dijkstra(int src,int dest){
+    private List<NodeData> dijkstra(int src,int dest){
         Node srcNode = (Node) graph.getNode(src);
         Node destNode = (Node)graph.getNode(dest);
         srcNode.setDist(0);
@@ -327,7 +338,7 @@ public class Algorithm implements api.DirectedWeightedGraphAlgorithms {
         return ret;
     }
 
-    public double[][] floyd(){
+    private double[][] floyd(){
         double[][] ret = new double[graph.nodeSize()][graph.nodeSize()];
         for (int i = 0; i < ret.length; i++) {
             for (int j = 0; j < ret.length ; j++) {

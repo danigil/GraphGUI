@@ -18,9 +18,7 @@ public class Node implements NodeData {
     private double dist;
 
     public final static int UNVISITED =0;
-    public final static int GRAY=1;
     public final static int VISITED=2;
-    public final static int HIDDEN=-1;
 
     public Node(int key, GeoLocation location, double weight, String info, int tag) {
         this.key = key;

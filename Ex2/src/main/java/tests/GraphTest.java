@@ -5,47 +5,65 @@ import api.NodeData;
 import main.Edge;
 import main.Graph;
 import main.Node;
+import main.Point3D;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class GraphTest {
     Graph graph;
     Random rand = new Random();
 
-    public static void main(String[] args) {
-
+    @BeforeEach
+    void create(){
+        graph=Graph.generateRandomGraph(10);
+        if(graph.nodeSize()<1){
+            graph=new Graph();
+            graph.addNode(new Node(0,new Point3D(0,0,0),0,"",0));
+            graph.addNode(new Node(1,new Point3D(0,0,0),0,"",0));
+        }
 
     }
 
-    @BeforeEach
-    void create(){
-//
-//        int numOfNodes = rand.nextInt(1000);
-//        for (int i = 0; i < numOfNodes ; i++) {
-//            double x=100 * rand.nextDouble();
-//            double y=100 * rand.nextDouble();
-//            double weightNode=10 * rand.nextDouble();
-//            Node node = new Node(i,new Point3D(x,y,0),weightNode,"",0);
-//            for (int j = 0; j < numOfNodes ; j++) {
-//                if(j==i)
-//                    continue;
-//
-//                int bit = rand.nextInt(2);
-//                if(bit==1){
-//                    double weightEdge=10 * rand.nextDouble();
-//                    Edge addNew = new Edge(i,j,weightEdge,"",0);
-//                    node.getEdges().put(j,addNew);
-//                }
-//            }
-//            graph.getNodes().put(i,node);
-//        }
+    @Test
+    void testRemoveNode(){
+        int toBeRemoved = rand.nextInt(graph.nodeSize());
+        NodeData getToBeRemoved = graph.getNode(toBeRemoved);
+        NodeData removed = graph.removeNode(toBeRemoved);
 
-        graph=Graph.generateRandomGraph(10);
+        assertEquals(getToBeRemoved,removed);
+    }
+
+    @Test
+    void testGetNode(){
+        int toBeGet = rand.nextInt(graph.nodeSize());
+        assertEquals(graph.getNodes().get(toBeGet),graph.getNode(toBeGet));
+    }
+
+    @Test
+    void testGetEdge(){
+        int src = rand.nextInt(graph.nodeSize());
+        int dest = rand.nextInt(graph.nodeSize());
+        assertEquals(graph.getNodes().get(src).getEdges().get(dest),graph.getEdge(src,dest));
+    }
+
+    @Test
+    void testAddNode(){
+        Node toAdd=new Node(graph.nodeSize(),new Point3D(1,2,3),15,"new",0);
+        graph.addNode(toAdd);
+        assertEquals(graph.getNode(toAdd.getKey()),toAdd);
+    }
+
+    @Test
+    void testConnect(){
+        int src = rand.nextInt(graph.nodeSize());
+        int dest = rand.nextInt(graph.nodeSize());
+        double weight = rand.nextInt(1000);
+        graph.connect(src,dest,weight);
+        assertTrue(graph.getEdge(src,dest).getSrc()==src && graph.getEdge(src,dest).getDest()==dest && graph.getEdge(src,dest).getWeight()==weight);
     }
 
     @Test
@@ -77,11 +95,11 @@ public class GraphTest {
         Iterator<EdgeData> edgeIterator = graph.edgeIter();
         int[][] graphArrayExpected = new int[graph.nodeSize()][graph.nodeSize()];
 
-            while (edgeIterator.hasNext()) {
-                iteratorSizeExpected++;
-                EdgeData currentExpected = edgeIterator.next();
-                graphArrayExpected[currentExpected.getSrc()][currentExpected.getDest()] = 1;
-            }
+        while (edgeIterator.hasNext()) {
+            iteratorSizeExpected++;
+            EdgeData currentExpected = edgeIterator.next();
+            graphArrayExpected[currentExpected.getSrc()][currentExpected.getDest()] = 1;
+        }
 
 
         int[][] graphArrayActual = new int[graph.nodeSize()][graph.nodeSize()];
@@ -117,14 +135,14 @@ public class GraphTest {
     }
 
     @Test
-    void testRemoveNode(){
-        int toBeRemoved = rand.nextInt(graph.nodeSize());
-        NodeData getToBeRemoved = graph.getNode(toBeRemoved);
-        NodeData removed = graph.removeNode(toBeRemoved);
+    void testRemoveEdge(){
+        int src = rand.nextInt(graph.nodeSize());
+        int dest = rand.nextInt(graph.nodeSize());
+        graph.connect(src,dest,15);
+        Edge edge = (Edge)graph.removeEdge(src,dest);
+        assertTrue(edge.getSrc()==src && edge.getDest()==dest && edge.getWeight()==15);
 
-        int x=5;
-
-        assertEquals(getToBeRemoved,removed);
 
     }
+
 }
