@@ -37,7 +37,7 @@ public class Page {
     }
 
     public void changeGraph(Graph graph){
-        getAlgorithm().init(graph);
+        algorithm.init(graph);
         rePaint();
     }
 

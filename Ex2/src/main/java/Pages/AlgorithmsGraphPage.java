@@ -1,5 +1,6 @@
 package Pages;
 
+import api.NodeData;
 import main.Algorithm;
 import main.Node;
 
@@ -71,7 +72,10 @@ public class AlgorithmsGraphPage extends Page{
                 if(input.matches("(\\d+),(\\d+)")) {
                     regex = input.split(",");
                     String ret = Algorithm.printList(algorithm.dijkstra(Integer.parseInt(regex[0]),Integer.parseInt(regex[1])));
-                    JOptionPane.showMessageDialog(panel, ret);
+                    if(!ret.equals(""))
+                        JOptionPane.showMessageDialog(panel, ret);
+                    else
+                        JOptionPane.showMessageDialog(panel, "There is no path between "+ Integer.parseInt(regex[0])+","+Integer.parseInt(regex[1]));
                 }
                 else
                     JOptionPane.showMessageDialog(panel, "Invalid input!");
@@ -84,7 +88,11 @@ public class AlgorithmsGraphPage extends Page{
         center.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                NodeData center=algorithm.center();
+                if(center!=null)
+                    JOptionPane.showMessageDialog(panel, "The center node is: N"+center.getKey());
+                else
+                    JOptionPane.showMessageDialog(panel, "There is no center node.");
             }
         });
 

@@ -26,6 +26,14 @@ public class Point3D implements GeoLocation {
         return z;
     }
 
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    public void setY(double y) {
+        this.y = y;
+    }
+
     @Override
     public double distance(GeoLocation g) {
         return Math.sqrt(Math.pow(x-g.x(),2)+Math.pow(y-g.y(),2)+Math.pow(z-g.z(),2));

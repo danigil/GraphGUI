@@ -12,6 +12,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 public class Draw extends JFrame{
@@ -19,6 +20,7 @@ public class Draw extends JFrame{
     int width=1000;
     int height=700;
     Point3D points[];
+    ArrayList<Point3D> point;
     public Draw(Graph graph){
         //setTitle("Drawing a Circle");
         JPanel panel = new JPanel();
@@ -61,6 +63,7 @@ public class Draw extends JFrame{
     private void findScale(){
         if(graph.getNodes()!=null && !graph.getNodes().isEmpty()) {
             points=new Point3D[graph.nodeSize()];
+            point=new ArrayList<>(graph.nodeSize());
             Iterator<NodeData> iterator = graph.nodeIter();
             double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE, maxX = Double.MIN_VALUE, maxY = Double.MIN_VALUE;
             while (iterator.hasNext()) {
@@ -112,6 +115,7 @@ public class Draw extends JFrame{
     public void paint(Graphics g) {
         super.paint(g);
 
+        Scale scale = new Scale(width, height);
 
         Graphics2D g2d = (Graphics2D) g;
         g.setColor(Color.RED);
@@ -128,7 +132,7 @@ public class Draw extends JFrame{
             return;
         }
 
-        findScale();
+        //findScale();
 
         g.setColor(Color.BLACK);
         Iterator<EdgeData> iteratorEdges=graph.edgeIter();
@@ -136,7 +140,10 @@ public class Draw extends JFrame{
             EdgeData current = iteratorEdges.next();
             NodeData src = graph.getNode(current.getSrc());
             NodeData dest = graph.getNode(current.getDest());
-            Line2D.Double line = new Line2D.Double(points[src.getKey()].x(),points[src.getKey()].y(),points[dest.getKey()].x(),points[dest.getKey()].y());
+            //Line2D.Double line = new Line2D.Double(points[src.getKey()].x(),points[src.getKey()].y(),points[dest.getKey()].x(),points[dest.getKey()].y());
+            Point3D srcScale = scale.scalePoint3D(src.getLocation(),graph.getLeftCorner(),graph.getRightCorner());
+            Point3D destScale = scale.scalePoint3D(dest.getLocation(),graph.getLeftCorner(),graph.getRightCorner());
+            Line2D.Double line = new Line2D.Double(srcScale.x(),srcScale.y(),destScale.x(),destScale.y());
             g2d.draw(line);
 
 
@@ -169,13 +176,14 @@ public class Draw extends JFrame{
             g.setColor(Color.RED);
 
             NodeData current = iterator.next();
-            circleShape = new Ellipse2D.Double(points[current.getKey()].x()-2.5, points[current.getKey()].y()-2.5, 5, 5);
+            Point3D currentScale = scale.scalePoint3D(current.getLocation(),graph.getLeftCorner(),graph.getRightCorner());
+            circleShape = new Ellipse2D.Double(currentScale.x()-2.5, currentScale.y()-2.5, 5, 5);
             g2d.fill(circleShape);
 
             //g2d.fillRect(points[current.getKey()].x(),points[current.getKey()].y(),5,5);
 
             g.setColor(Color.BLACK);
-            g2d.drawString("N"+current.getKey(),(int)Math.ceil(points[current.getKey()].x()),(int)Math.ceil(points[current.getKey()].y()-10));
+            g2d.drawString("N"+current.getKey(),(int)Math.ceil(currentScale.x()),(int)Math.ceil(currentScale.y()-10));
         }
 
 

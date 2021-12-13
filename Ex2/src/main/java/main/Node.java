@@ -20,6 +20,7 @@ public class Node implements NodeData {
     public final static int UNVISITED =0;
     public final static int GRAY=1;
     public final static int VISITED=2;
+    public final static int HIDDEN=-1;
 
     public Node(int key, GeoLocation location, double weight, String info, int tag) {
         this.key = key;
@@ -42,6 +43,10 @@ public class Node implements NodeData {
     @Override
     public int getKey() {
         return key;
+    }
+
+    public void setKey(int key){
+        this.key=key;
     }
 
     @Override

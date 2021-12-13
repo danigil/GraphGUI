@@ -8,15 +8,23 @@ import java.util.function.Consumer;
 
 public class Graph implements api.DirectedWeightedGraph {
 
-    Hashtable<Integer, Node> Nodes;
+    private Hashtable<Integer, Node> Nodes;
+    private Point3D leftCorner,rightCorner;
+    private Queue<Integer> removedKeys;
     int edgeSize=0;
 
     public Graph(Hashtable<Integer, Node> nodes) {
         this.Nodes = nodes;
+        leftCorner=new Point3D(Double.MAX_VALUE,Double.MAX_VALUE,0);
+        rightCorner=new Point3D(Double.MIN_VALUE,Double.MIN_VALUE,0);
+        removedKeys=new LinkedList<>();
     }
 
     public Graph(){
         this.Nodes=new Hashtable<>();
+        leftCorner=new Point3D(Double.MAX_VALUE,Double.MAX_VALUE,0);
+        rightCorner=new Point3D(Double.MIN_VALUE,Double.MIN_VALUE,0);
+        removedKeys=new LinkedList<>();
     }
 
     @Override
@@ -31,6 +39,21 @@ public class Graph implements api.DirectedWeightedGraph {
 
     @Override
     public void addNode(NodeData n) {
+        double x=n.getLocation().x();
+        double y=n.getLocation().y();
+        if(x<leftCorner.x())
+            leftCorner.setX(x);
+
+        if(x>rightCorner.x())
+            rightCorner.setX(x);
+
+        if(y<leftCorner.y())
+            leftCorner.setY(y);
+
+        if(y>rightCorner.y())
+            rightCorner.setY(y);
+
+
         Nodes.put(n.getKey(), (Node) n);
     }
 
@@ -46,11 +69,12 @@ public class Graph implements api.DirectedWeightedGraph {
     @Override
     public Iterator<NodeData> nodeIter() {
         Iterator<NodeData> iterator = new Iterator() {
+            Queue<NodeData> notHiddens=createQ();
             Enumeration<Integer> e = Nodes.keys();
-            NodeData removed=null;
+            Node removed=null;
             @Override
             public boolean hasNext() {
-                return e.hasMoreElements() || removed!=null;
+                return !notHiddens.isEmpty() || removed!=null;
             }
 
             @Override
@@ -61,7 +85,7 @@ public class Graph implements api.DirectedWeightedGraph {
                     return tmp;
                 }
                 else
-                    return Nodes.get(e.nextElement());
+                    return notHiddens.poll();
             }
 
             @Override
@@ -73,6 +97,19 @@ public class Graph implements api.DirectedWeightedGraph {
             public void forEachRemaining(Consumer action) {
 
             }
+
+            public Queue<NodeData> createQ(){
+                Queue<NodeData> ret = new LinkedList<>();
+                Enumeration<Node> enumeration = Nodes.elements();
+                while (enumeration.hasMoreElements()){
+                    Node current = enumeration.nextElement();
+                    if(current.getTag()!=Node.HIDDEN)
+                        ret.add(current);
+                }
+
+                return ret;
+            }
+
         };
 
         return iterator;
@@ -168,6 +205,9 @@ public class Graph implements api.DirectedWeightedGraph {
 
     @Override
     public NodeData removeNode(int key) {
+        if(Nodes.get(key)==null)
+            return null;
+
         Iterator<EdgeData> edgeIterator = edgeIter();
         while (edgeIterator.hasNext()){
             EdgeData current = edgeIterator.next();
@@ -175,7 +215,24 @@ public class Graph implements api.DirectedWeightedGraph {
                 removeEdge(current.getSrc(),current.getDest());
             }
         }
-        return Nodes.remove(key);
+//        edgeIterator = edgeIter();
+//        while (edgeIterator.hasNext()){
+//            Edge current = (Edge)edgeIterator.next();
+//            if(current.getSrc()==key+1){
+//                current.setSrc(key);
+//            }
+//
+//            if(current.getDest()==key+1){
+//                current.setDest(key);
+//            }
+//        }
+
+        Node remove=Nodes.remove(key);
+        //Nodes.put(key,new Node(key,null,-1,null,Node.HIDDEN));
+        shift(key);
+        //removedKeys.add(key);
+
+        return remove;
     }
 
     @Override
@@ -210,6 +267,19 @@ public class Graph implements api.DirectedWeightedGraph {
         return Nodes;
     }
 
+    public Point3D getLeftCorner() {
+        return leftCorner;
+    }
+
+    public Point3D getRightCorner() {
+        return rightCorner;
+    }
+
+    public Queue getRemovedKeys(){
+        return removedKeys;
+    }
+
+
     public static Graph generateRandomGraph(int nodeSIze){
         Graph graph = new Graph();
         Random rand = new Random();
@@ -224,14 +294,15 @@ public class Graph implements api.DirectedWeightedGraph {
                     continue;
 
                 int bit = rand.nextInt(2);
-                if(bit==1){
+                if(bit==1 && node.getEdges().size()<10){
                     double weightEdge=10 * rand.nextDouble();
                     Edge addNew = new Edge(i,j,weightEdge,"",0);
                     node.getEdges().put(j,addNew);
                     //graph.connect(i,j,weightEdge);
                 }
             }
-            graph.getNodes().put(i,node);
+            //graph.getNodes().put(i,node);
+            graph.addNode(node);
         }
 
         return graph;
@@ -255,5 +326,32 @@ public class Graph implements api.DirectedWeightedGraph {
         }
 
         return ret;
+    }
+
+    public int getSizeNoHiddens(){
+        return Nodes.size()-removedKeys.size();
+    }
+
+    private void shift(int pos){
+        if(pos==nodeSize())
+            return;
+        Iterator<EdgeData> edgeIterator = edgeIter();
+        while (edgeIterator.hasNext()){
+            Edge current = (Edge)edgeIterator.next();
+
+            if(current.getSrc()>=pos+1)
+                current.setSrc(current.getSrc()-1);
+
+            if(current.getDest()>=pos+1)
+                current.setDest(current.getDest()-1);
+        }
+
+        Nodes.put(pos, (Node) this.getNode(pos+1));
+        for (int i = pos+1; i < this.nodeSize(); i++) {
+            Node temp = (Node)this.getNode(i);
+            temp.setKey(i-1);
+            Nodes.replace(i-1,temp);
+        }
+        Nodes.remove(this.nodeSize()-1);
     }
 }

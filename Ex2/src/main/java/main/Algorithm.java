@@ -37,18 +37,25 @@ public class Algorithm implements api.DirectedWeightedGraphAlgorithms {
     @Override
     public DirectedWeightedGraph copy() {
         Hashtable<Integer,Node> hashtable = new Hashtable<>();
+
         Iterator nodeIter = graph.nodeIter();
+
         while (nodeIter.hasNext()){
             Node currentNode = ((Node)nodeIter.next());
             hashtable.put(currentNode.getKey(),currentNode.clone());
         }
+
         DirectedWeightedGraph ret = new Graph(hashtable);
         return ret;
     }
 
     @Override
     public boolean isConnected() {
+        if(graph.getSizeNoHiddens()==1)
+            return true;
+
         Iterator<NodeData> iterator = graph.nodeIter();
+
         while (iterator.hasNext()){
             iterator.next().setTag(Node.UNVISITED);
         }
@@ -61,6 +68,7 @@ public class Algorithm implements api.DirectedWeightedGraphAlgorithms {
         iterator = graph.nodeIter();
         while (iterator.hasNext()){
             NodeData current = iterator.next();
+            System.out.println("current: "+current.getKey());
             if(current.getTag()==Node.UNVISITED){
                 return false;
             }
@@ -80,6 +88,7 @@ public class Algorithm implements api.DirectedWeightedGraphAlgorithms {
         while (iterator.hasNext()){
             NodeData current = iterator.next();
             if(current.getTag()==Node.UNVISITED){
+                System.out.println("currentTRANS: "+current.getKey());
                 return false;
             }
         }
@@ -100,11 +109,42 @@ public class Algorithm implements api.DirectedWeightedGraphAlgorithms {
 
     @Override
     public NodeData center() {
-        return null;
+        if (graph.nodeSize()<1)
+            return null;
+
+        if (!isConnected())
+            return null;
+
+        double[][] floyd = floyd();
+        double[] eccentricity=new double[graph.nodeSize()];
+
+        for (int i = 0; i < eccentricity.length ; i++) {
+            eccentricity[i]=Integer.MIN_VALUE;
+        }
+
+        for (int i = 0; i < floyd.length ; i++) {
+            for (int j = 0; j < floyd.length ; j++) {
+                if(i!=j && floyd[i][j]>eccentricity[i] && floyd[i][j]!=Integer.MAX_VALUE){
+                    eccentricity[i]=floyd[i][j];
+                }
+            }
+        }
+
+
+        int minIndex=graph.nodeIter().next().getKey();
+        for (int i = 0; i < eccentricity.length ; i++) {
+            if(graph.getNode(i).getTag()==Node.HIDDEN)
+                continue;
+            if(eccentricity[i]<eccentricity[minIndex])
+                minIndex=i;
+        }
+
+        return graph.getNode(minIndex);
     }
 
     @Override
     public List<NodeData> tsp(List<NodeData> cities) {
+
         return null;
     }
 
@@ -234,19 +274,6 @@ public class Algorithm implements api.DirectedWeightedGraphAlgorithms {
         }
     }
 
-    private void bfs(NodeData src,NodeData dest,DirectedWeightedGraph g){
-        Queue<NodeData> q = new LinkedList<>();
-        src.setTag(Node.VISITED);
-        q.add(src);
-
-        double weight=0;
-
-        while (!q.isEmpty()){
-            NodeData current = q.remove();
-            if(current.equals(dest));
-        }
-    }
-
     public List<NodeData> dijkstra(int src,int dest){
         Node srcNode = (Node) graph.getNode(src);
         Node destNode = (Node)graph.getNode(dest);
@@ -268,7 +295,6 @@ public class Algorithm implements api.DirectedWeightedGraphAlgorithms {
 
         while (!q.isEmpty()){
             Node current = q.poll();
-
             Iterator<EdgeData> edgeIterator = graph.edgeIter(current.getKey());
 
 
@@ -279,6 +305,8 @@ public class Algorithm implements api.DirectedWeightedGraphAlgorithms {
                 if(alt<neighbour.getDist()){
                     neighbour.setDist(alt);
                     prev[neighbour.getKey()]=current;
+                    q.remove(neighbour);
+                    q.add(neighbour);
                 }
             }
         }
@@ -299,7 +327,40 @@ public class Algorithm implements api.DirectedWeightedGraphAlgorithms {
         return ret;
     }
 
+    public double[][] floyd(){
+        double[][] ret = new double[graph.nodeSize()][graph.nodeSize()];
+        for (int i = 0; i < ret.length; i++) {
+            for (int j = 0; j < ret.length ; j++) {
+                ret[i][j]=Integer.MAX_VALUE;
+            }
+        }
+
+        Iterator<EdgeData> edgeIterator = graph.edgeIter();
+        while (edgeIterator.hasNext()){
+            EdgeData currentEdge = edgeIterator.next();
+            ret[currentEdge.getSrc()][currentEdge.getDest()]=currentEdge.getWeight();
+        }
+
+        for (int i = 0; i < ret.length ; i++) {
+            ret[i][i]=0;
+        }
+
+        for (int i = 0; i < ret.length ; i++) {
+            for (int j = 0; j < ret.length ; j++) {
+                for (int k = 0; k < ret.length; k++) {
+                    if(ret[j][k] > ret[j][i] + ret[i][k])
+                        ret[j][k]= ret[j][i] + ret[i][k];
+                }
+            }
+        }
+
+        return ret;
+    }
+
     public static String printList(List<NodeData> list){
+        if(list.size()<1)
+            return "";
+
         String ret="";
         for (int i = 0; i < list.size()-1 ; i++) {
             ret+="N"+list.get(i).getKey()+" -> ";

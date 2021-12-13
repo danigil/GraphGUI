@@ -33,9 +33,6 @@ public class Scale {
     }
 
     public Point3D scalePoint3D(GeoLocation scalePoint, GeoLocation leftCorner, GeoLocation rightCorner){
-//        if(leftCorner.x()==rightCorner.x() && leftCorner.y()==rightCorner.y()){
-//            new Point3D(scale(scalePoint.x(),scalePoint.x()+5,width,75,width-75),scale(scalePoint.y(),scalePoint.y()+5,height,75,height-75),0);
-//        }
         return new Point3D(scale(scalePoint.x(),leftCorner.x(),rightCorner.x(),75,width-75),scale(scalePoint.y(),leftCorner.y(),rightCorner.y(),75,height-75),0);
     }
 

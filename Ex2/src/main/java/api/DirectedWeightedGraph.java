@@ -1,7 +1,7 @@
 package api;
 import java.util.Iterator;
 /**
- * This interface represents a Directional Weighted main.Graph,
+ * This interface represents a Directional Weighted main.main.Graph,
  * As in: http://math.oxford.emory.edu/site/cs171/directedAndEdgeWeightedGraphs/
  * The interface has a road-system or communication network in mind - 
  * and should support a large number of nodes (over 100,000).

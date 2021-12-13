@@ -9,6 +9,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Queue;
 
 public class EditGraphPage extends Page{
     JButton addNode = new JButton("Add node ");
@@ -20,6 +21,8 @@ public class EditGraphPage extends Page{
     public EditGraphPage(){
         panel.add(addNode);
         addNode.addActionListener(e -> {
+            int key=0;
+
             String input="";
             double x=0;
             double y=0;
@@ -36,12 +39,15 @@ public class EditGraphPage extends Page{
                     y = Double.parseDouble(regex[1]);
                     weight=Double.parseDouble(regex[2]);
                     info=regex[3];
-                    algorithm.getGraph().addNode(new Node(algorithm.getGraph().nodeSize(), new Point3D(x, y, 0), weight, info, 0));
                 }
-                else{
-                    algorithm.getGraph().addNode(new Node(algorithm.getGraph().nodeSize(), new Point3D(x, y, 0), weight, info, 0));
-                }
-                rePaint();
+
+            Queue<Integer> keys=((Graph)algorithm.getGraph()).getRemovedKeys();
+            if(keys.isEmpty())
+                algorithm.getGraph().addNode(new Node(algorithm.getGraph().nodeSize(), new Point3D(x, y, 0), weight, info, 0));
+            else
+                algorithm.getGraph().addNode(new Node(keys.poll(), new Point3D(x, y, 0), weight, info, 0));
+
+            rePaint();
             });
 
         panel.add(deleteNode);
@@ -56,6 +62,7 @@ public class EditGraphPage extends Page{
                     JOptionPane.showMessageDialog(panel, "Invalid input!");
                 }
                 if(input.matches("\\d+")) {
+                    System.out.println(Integer.parseInt(input));
                     getAlgorithm().getGraph().removeNode(Integer.parseInt(input));
 
                     rePaint();
